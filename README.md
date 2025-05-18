@@ -10,7 +10,7 @@
 - 不同符號有不同獎金，詳見頁面上方的獎金表
 
 ## 網頁連結
-[點我開始玩](https://你的帳號.github.io/你的倉庫名稱/)
+[點我開始玩](https://github.com/edichauleehai/slot-machine/)
 
 ---
 
