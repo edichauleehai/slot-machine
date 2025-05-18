@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>超炫拉霸機 🎰</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #222, #444);
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      color: gold;
+      text-shadow: 0 0 10px orange;
+    }
+
+    .slot-machine {
+      display: flex;
+      justify-content: center;
+      margin: 30px auto;
+      gap: 20px;
+    }
+
+    .reel {
+      width: 90px;
+      height: 90px;
+      font-size: 50px;
+      border: 4px solid #fff;
+      background: black;
+      color: white;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px #ff0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .reel.spinning {
+      animation: spinBlur 0.1s linear infinite;
+      filter: brightness(1.5) blur(1px);
+    }
+
+    .reel.win {
+      animation: winGlow 0.5s ease-in-out infinite alternate;
+      transform: scale(1.1);
+    }
+
+    @keyframes spinBlur {
+      0% { filter: brightness(1.2) blur(1px); }
+      50% { filter: brightness(1.6) blur(2px); }
+      100% { filter: brightness(1.2) blur(1px); }
+    }
+
+    @keyframes winGlow {
+      0% { box-shadow: 0 0 8px #0f0; }
+      100% { box-shadow: 0 0 20px #0f0; }
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 22px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(to right, #ff9800, #ff5722);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>超炫拉霸機 🎰</h1>
+
+  <div class="slot-machine">
+    <div class="reel" id="reel1">🍒</div>
+    <div class="reel" id="reel2">🍋</div>
+    <div class="reel" id="reel3">🍉</div>
+  </div>
+
+  <button id="spin-button">轉動！</button>
+
+  <script>
+    const symbols = ['🍒', '🍋', '🍉', '🔔', '⭐', '💎'];
+    const reels = [
+      document.getElementById('reel1'),
+      document.getElementById('reel2'),
+      document.getElementById('reel3')
+    ];
+    const spinButton = document.getElementById('spin-button');
+
+    function spinReel(reel, delay) {
+      return new Promise((resolve) => {
+        let count = 0;
+        const totalSpins = 20 + Math.floor(Math.random() * 10);
+        reel.classList.add('spinning');
+
+        const interval = setInterval(() => {
+          let symbol = symbols[Math.floor(Math.random() * symbols.length)];
+          reel.textContent = symbol;
+          count++;
+          if (count >= totalSpins) {
+            clearInterval(interval);
+            reel.classList.remove('spinning');
+            resolve();
+          }
+        }, delay);
+      });
+    }
+
+    function resetReels() {
+      reels.forEach(reel => {
+        reel.classList.remove('win');
+      });
+    }
+
+    spinButton.addEventListener('click', async () => {
+      spinButton.disabled = true;
+      resetReels();
+
+      await Promise.all([
+        spinReel(reels[0], 60),
+        spinReel(reels[1], 80),
+        spinReel(reels[2], 100)
+      ]);
+
+      // 判斷是否中獎
+      if (reels[0].textContent === reels[1].textContent &&
+          reels[1].textContent === reels[2].textContent) {
+        reels.forEach(reel => reel.classList.add('win'));
+        setTimeout(() => alert('🎉🎉🎉 超幸運！中獎啦！'), 200);
+      }
+
+      spinButton.disabled = false;
+    });
+  </script>
+</body>
+</html>

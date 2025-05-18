@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>拉霸機滑鼠作弊版</title>
+<style>
+  body {
+    background: linear-gradient(45deg, #1e3c72, #2a5298);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+  }
+  h1 {
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px #fff;
+  }
+  #slot-machine {
+    background: #222;
+    padding: 20px 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #00d2ff;
+    user-select: none;
+  }
+  #reels {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .reel {
+    width: 80px;
+    height: 80px;
+    font-size: 60px;
+    margin: 0 10px;
+    background: #111;
+    border-radius: 15px;
+    box-shadow: inset 0 0 15px #00d2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.3s ease;
+  }
+  .reel.spinning {
+    animation: spinGlow 0.7s infinite alternate;
+  }
+  @keyframes spinGlow {
+    0% { box-shadow: inset 0 0 10px #0ff, 0 0 20px #0ff; }
+    100% { box-shadow: inset 0 0 20px #0ff, 0 0 40px #0ff; }
+  }
+  .reel.win {
+    box-shadow: 0 0 25px 5px #ff0;
+    background: #333300;
+    animation: pulse 1s infinite alternate;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 25px 5px #ff0; }
+    100% { box-shadow: 0 0 40px 10px #ff0; }
+  }
+  #spin-button {
+    background: #00d2ff;
+    border: none;
+    padding: 15px 40px;
+    font-size: 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    color: #222;
+    font-weight: bold;
+    box-shadow: 0 0 20px #00d2ff;
+    transition: background 0.3s ease;
+  }
+  #spin-button:disabled {
+    background: #555;
+    cursor: not-allowed;
+    box-shadow: none;
+    color: #999;
+  }
+
+  /* 爆炸動畫 */
+  @keyframes explosion {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 0 5px gold);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(2);
+      filter: drop-shadow(0 0 20px gold);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(3);
+      filter: drop-shadow(0 0 0 gold);
+    }
+  }
+  .explosion {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 100px;
+    pointer-events: none;
+    user-select: none;
+    transform: translate(-50%, -50%);
+    animation: explosion 1s ease forwards;
+    color: gold;
+    text-shadow: 0 0 10px gold, 0 0 30px orange, 0 0 40px red;
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+
+<h1>拉霸機滑鼠作弊版</h1>
+<div id="slot-machine">
+  <div id="reels">
+    <div class="reel" id="reel1">🍒</div>
+    <div class="reel" id="reel2">🍋</div>
+    <div class="reel" id="reel3">🍉</div>
+  </div>
+  <button id="spin-button">轉動！</button>
+</div>
+
+<div id="explosion-container"></div>
+
+<script>
+  const symbols = ['🍒', '🍋', '🍉', '🔔', '⭐', '💎'];
+  const reels = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+  const spinButton = document.getElementById('spin-button');
+
+  let cheatMode = false;
+  let clickTimes = [];
+  let spinning = false; // 轉動狀態flag
+
+  spinButton.addEventListener('click', () => {
+    const now = Date.now();
+    clickTimes.push(now);
+    // 只保留最近2秒的點擊時間
+    clickTimes = clickTimes.filter(t => now - t <= 2000);
+
+    if (clickTimes.length >= 3) {
+      cheatMode = true;
+      console.log('🟢 Cheat mode activated by mouse triple-click!');
+      clickTimes = [];
+    }
+
+    // 轉動中不阻擋點擊，讓作弊能累積，但只在非轉動狀態執行spin
+    if (!spinning) {
+      spinMachine();
+    }
+  });
+
+  function spinReel(reel, delay, finalSymbol = null) {
+    return new Promise((resolve) => {
+      let count = 0;
+      const totalSpins = 20 + Math.floor(Math.random() * 10);
+      reel.classList.add('spinning');
+
+      const interval = setInterval(() => {
+        let symbol;
+        if (finalSymbol && count >= totalSpins - 1) {
+          symbol = finalSymbol;
+        } else {
+          symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        }
+        reel.textContent = symbol;
+        count++;
+        if (count >= totalSpins) {
+          clearInterval(interval);
+          reel.classList.remove('spinning');
+          resolve();
+        }
+      }, delay);
+    });
+  }
+
+  function resetReels() {
+    reels.forEach(reel => reel.classList.remove('win'));
+  }
+
+  function showExplosion() {
+    const container = document.getElementById('explosion-container');
+    const explosion = document.createElement('div');
+    explosion.classList.add('explosion');
+    explosion.textContent = '💥🔥🎉';
+    container.appendChild(explosion);
+
+    setTimeout(() => {
+      container.removeChild(explosion);
+    }, 1000);
+  }
+
+  async function spinMachine() {
+    spinning = true;
+    resetReels();
+
+    if (cheatMode) {
+      const lucky = symbols[Math.floor(Math.random() * symbols.length)];
+      await Promise.all([
+        spinReel(reels[0], 60, lucky),
+        spinReel(reels[1], 80, lucky),
+        spinReel(reels[2], 100, lucky)
+      ]);
+      reels.forEach(reel => reel.classList.add('win'));
+      showExplosion();
+      setTimeout(() => alert('🎉 作弊成功！中獎啦！'), 100);
+      cheatMode = false;
+    } else {
+      await Promise.all([
+        spinReel(reels[0], 60),
+        spinReel(reels[1], 80),
+        spinReel(reels[2], 100)
+      ]);
+      if (reels[0].textContent === reels[1].textContent &&
+          reels[1].textContent === reels[2].textContent) {
+        reels.forEach(reel => reel.classList.add('win'));
+        showExplosion();
+        setTimeout(() => alert('🎉 超幸運！中獎啦！'), 100);
+      }
+    }
+
+    spinning = false;
+  }
+</script>
+
+</body>
+</html>
